@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Vote - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="vote-container">
+    <div class="vote-header">
+        <h1><i class="fas fa-vote-yea"></i> {{ title }}</h1>
+        {% if active %}
+        <p class="election-time">
+            <i class="fas fa-clock"></i> 
+            Vote ouvert jusqu'au {{ format_gmt_date(active.end) }}
+        </p>
+        {% endif %}
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    {% if not voted %}
+    <form method="post" class="vote-form" id="voteForm">
+        <div class="voter-info">
+            <h2><i class="fas fa-user-circle"></i> Vos informations</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nom">Nom</label>
+                    <input type="text" id="nom" name="nom" required>
+                </div>
+                <div class="form-group">
+                    <label for="prenom">Prénom</label>
+                    <input type="text" id="prenom" name="prenom" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="email">Adresse email</label>
+                <input type="email" id="email" name="email" required>
+                <small class="form-text">Une confirmation sera envoyée à cette adresse</small>
+            </div>
+        </div>
+
+        <div class="vote-section">
+            <h2><i class="fas fa-user-tie"></i> Candidats</h2>
+            <p class="section-description">Sélectionnez votre candidat préféré :</p>
+            
+            <div class="candidates-grid">
+                {% for c in candidats %}
+                <div class="candidate-card">
+                    <div class="candidate-image">
+                        <img src="{{ url_for('static', filename='uploads/' + c.image) }}" alt="{{ c.nom }}" loading="lazy">
+                    </div>
+                    <div class="candidate-info">
+                        <h3>{{ c.nom }}</h3>
+                        <div class="candidate-bio">
+                            <p>{{ c.aspirations }}</p>
+                        </div>
+                        <label class="radio-label">
+                            <input type="radio" name="candidat" value="{{ c.id }}" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Voter pour ce candidat</span>
+                        </label>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-footer">
+            <button type="submit" class="btn btn-primary btn-vote">
+                <i class="fas fa-paper-plane"></i> Soumettre mon vote
+            </button>
+            <p class="legal-text">
+                <small>
+                    <i class="fas fa-lock"></i> Votre vote est anonyme et sécurisé.
+                    Vous ne pourrez voter qu'une seule fois.
+                </small>
+            </p>
+        </div>
+    </form>
+
+    <script>
+    document.getElementById('voteForm').addEventListener('submit', function(e) {
+        const selectedCandidate = document.querySelector('input[name="candidat"]:checked');
+        if (!selectedCandidate) {
+            e.preventDefault();
+            Toastify({
+                text: "Veuillez sélectionner un candidat",
+                duration: 3000,
+                backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)"
+            }).showToast();
+        }
+    });
+    </script>
+    {% endif %}
+</div>
+{% endblock %}

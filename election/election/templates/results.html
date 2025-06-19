@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Résultats - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="admin-results-container">
+    <div class="results-header">
+        <h1><i class="fas fa-chart-bar"></i> Résultats : {{ title }}</h1>
+        <div class="results-meta">
+            <span class="badge">
+                <i class="fas fa-users"></i> {{ total_votes }} votes
+            </span>
+            {% if active_election %}
+            <span class="badge">
+                <i class="fas fa-clock"></i> {{ format_gmt_date(active_election.end) }}
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if no_data %}
+    <div class="no-results">
+        <div class="empty-state">
+            <i class="fas fa-database"></i>
+            <h2>Aucune donnée disponible</h2>
+            <p>Cette élection n'a pas encore reçu de votes.</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="results-content">
+        <section class="results-section">
+            <h2><i class="fas fa-chart-pie"></i> Visualisations</h2>
+            <div class="charts-container">
+                {% if img_data %}
+                <img src="data:image/png;base64,{{ img_data }}" alt="Graphiques des résultats">
+                {% else %}
+                <p class="no-chart">Aucun graphique disponible</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="detailed-results">
+            <div class="section-header">
+                <h2><i class="fas fa-table"></i> Détail des votes</h2>
+                <div class="export-actions">
+                    <a href="{{ url_for('export_results_csv') }}" class="btn btn-sm btn-export">
+                        <i class="fas fa-file-csv"></i> Exporter
+                    </a>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="votes-table">
+                    <thead>
+                        <tr>
+                            <th>Électeur</th>
+                            <th>Prénom</th>
+                            <th>Email</th>
+                            <th>Date/Heure (GMT)</th>
+                            <th>Candidat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vote in table_data %}
+                        <tr>
+                            <td>{{ vote['Électeur'] }}</td>
+                            <td>{{ vote['Prénom'] }}</td>
+                            <td>{{ vote['Email'] }}</td>
+                            <td>{{ vote['Date/Heure (GMT)'] }}</td>
+                            <td>
+                                <span class="candidate-badge">{{ vote['Candidat'] }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+    {% endif %}
+
+    <div class="results-footer">
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i> Retour au dashboard
+        </a>
+        <div class="generated-time">
+            <i class="fas fa-sync-alt"></i> Généré le {{ now.strftime('%d/%m/%Y %H:%M GMT') }}
+        </div>
+    </div>
+</div>
+
+<script>
+// Tri des tables
+document.addEventListener('DOMContentLoaded', function() {
+    const tables = document.querySelectorAll('.votes-table');
+    tables.forEach(table => {
+        const headers = table.querySelectorAll('th');
+        headers.forEach((header, index) => {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', () => {
+                sortTable(table, index);
+            });
+        });
+    });
+});
+
+function sortTable(table, columnIndex) {
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    rows.sort((a, b) => {
+        const aText = a.cells[columnIndex].textContent.trim();
+        const bText = b.cells[columnIndex].textContent.trim();
+        
+        // Essayer de convertir en nombre pour les colonnes numériques
+        if (!isNaN(aText) && !isNaN(bText)) {
+            return parseFloat(aText) - parseFloat(bText);
+        }
+        
+        // Sinon tri alphabétique
+        return aText.localeCompare(bText);
+    });
+    
+    // Vider et réinsérer les lignes triées
+    while (tbody.firstChild) {
+        tbody.removeChild(tbody.firstChild);
+    }
+    
+    rows.forEach(row => tbody.appendChild(row));
+}
+</script>
+{% endblock %}

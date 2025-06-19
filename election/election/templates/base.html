@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Système de Vote Électronique{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Poppins:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
+</head>
+<body class="{{ 'dark-mode' if request.cookies.get('theme') == 'dark' else '' }}">
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo" class="logo">
+                <h1>Système de Vote</h1>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="{{ url_for('vote') }}" class="{{ 'active' if request.path == url_for('vote') else '' }}"><i class="fas fa-vote-yea"></i> Voter</a></li>
+                    {% if session.admin %}
+                        <li><a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if request.path == url_for('admin_dashboard') else '' }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                        <li><a href="{{ url_for('admin_results') }}" class="{{ 'active' if request.path == url_for('admin_results') else '' }}"><i class="fas fa-chart-bar"></i> Résultats</a></li>
+                        <li><a href="{{ url_for('admin_logout') }}"><i class="fas fa-sign-out-alt"></i> Déconnexion</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('admin_login') }}" class="{{ 'active' if request.path == url_for('admin_login') else '' }}"><i class="fas fa-lock"></i> Admin</a></li>
+                    {% endif %}
+                </ul>
+                <button id="themeToggle" class="theme-btn">
+                    <i class="fas fa-moon"></i>
+                    <i class="fas fa-sun"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">
+                            <span class="flash-icon">
+                                {% if category == 'success' %}
+                                    <i class="fas fa-check-circle"></i>
+                                {% elif category == 'danger' %}
+                                    <i class="fas fa-exclamation-circle"></i>
+                                {% elif category == 'warning' %}
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle"></i>
+                                {% endif %}
+                            </span>
+                            {{ message }}
+                            <button class="flash-close" onclick="this.parentElement.remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-info">
+                <p><i class="fas fa-clock"></i> Heure serveur : {{ get_gmt_time().strftime('%d/%m/%Y %H:%M GMT') }}</p>
+                <p><i class="fas fa-shield-alt"></i> Système sécurisé</p>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2025 Système de Vote Electronique. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

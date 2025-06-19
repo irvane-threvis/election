@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Admin{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <div class="dashboard-header">
+        <h2><i class="fas fa-tachometer-alt"></i> Tableau de Bord Administrateur</h2>
+        <div class="current-time" aria-live="polite" aria-atomic="true">
+            <i class="fas fa-clock"></i> {{ now.strftime('%d/%m/%Y %H:%M GMT') }}
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Section Création d'élection -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-plus-circle"></i> Créer une Élection</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="createElectionForm" novalidate>
+                    <div class="form-group">
+                        <label for="title">Titre de l'élection</label>
+                        <input type="text" id="title" name="title" class="form-control" required placeholder="Entrez le titre de l'élection" aria-required="true" />
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="start">Date de début (GMT)</label>
+                            <input type="datetime-local" id="start" name="start" class="form-control" required aria-required="true" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="end">Date de fin (GMT)</label>
+                            <input type="datetime-local" id="end" name="end" class="form-control" required aria-required="true" />
+                        </div>
+                    </div>
+                    
+                    <button type="submit" name="create_election" class="btn btn-primary" aria-label="Créer une nouvelle élection">
+                        <i class="fas fa-save"></i> Créer l'Élection
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Section Sélection d'élection -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-toggle-on"></i> Élection Active</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="selectElectionForm" novalidate>
+                    <div class="form-group">
+                        <label for="election_id">Sélectionner une élection</label>
+                        <select id="election_id" name="election_id" class="form-control" required aria-required="true">
+                            <option value="">-- Sélectionnez --</option>
+                            {% for e in elections %}
+                            <option value="{{ e.id }}" {% if e.active == 'true' %}selected{% endif %}>
+                                {{ e.title }} ({{ format_gmt_date(e.start) }} - {{ format_gmt_date(e.end) }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <button type="submit" name="select_election" class="btn btn-primary" aria-label="Activer l'élection sélectionnée">
+                        <i class="fas fa-check"></i> Activer
+                    </button>
+                </form>
+                
+                {% if active %}
+                <div class="election-status mt-3" aria-live="polite" aria-atomic="true" role="region" aria-label="Informations sur l'élection active">
+                    <h4>Élection Active :</h4>
+                    <p><strong>{{ active.title }}</strong></p>
+                    <p><i class="fas fa-play"></i> Début : {{ format_gmt_date(active.start) }}</p>
+                    <p><i class="fas fa-stop"></i> Fin : {{ format_gmt_date(active.end) }}</p>
+                    <p><i class="fas fa-users"></i> Votes : {{ votes }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Section Candidats -->
+        {% if active %}
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3><i class="fas fa-user-tie"></i> Gérer les Candidats</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data" id="addCandidateForm" novalidate>
+                    <div class="form-group">
+                        <label for="nom_c">Nom du candidat</label>
+                        <input type="text" id="nom_c" name="nom_c" class="form-control" required placeholder="Nom complet" aria-required="true" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="asp_c">Aspirations/programme</label>
+                        <textarea id="asp_c" name="asp_c" class="form-control" rows="3" required placeholder="Décrivez les aspirations du candidat" aria-required="true"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="img_c">Photo du candidat</label>
+                        <div class="file-upload">
+                            <input type="file" id="img_c" name="img_c" accept="image/*" class="form-control-file" required aria-required="true" aria-describedby="imgHelp" />
+                            <label for="img_c" class="file-upload-label cursor-pointer" tabindex="0">
+                                <i class="fas fa-cloud-upload-alt"></i> Choisir une image...
+                            </label>
+                            <small id="imgHelp" class="form-text text-muted">Formats acceptés : JPG, PNG. Taille max : 2MB.</small>
+                            <div id="imagePreview" class="image-preview mt-2" aria-live="polite" aria-atomic="true" aria-label="Aperçu de l'image"></div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" name="add_candidat" class="btn btn-primary" aria-label="Ajouter un candidat">
+                        <i class="fas fa-plus"></i> Ajouter Candidat
+                    </button>
+                </form>
+                
+                {% if candidats %}
+                <div class="candidates-preview mt-3" role="list" aria-label="Liste des candidats enregistrés">
+                    <h4>Candidats enregistrés :</h4>
+                    <div class="candidates-grid">
+                        {% for c in candidats %}
+                        <div class="candidate-preview" role="listitem" tabindex="0" aria-label="Candidat {{ c.nom }}">
+                            <img src="{{ url_for('static', filename='uploads/' + c.image) }}" alt="Photo de {{ c.nom }}" loading="lazy" class="img-thumbnail" />
+                            <p>{{ c.nom }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Affiche un aperçu de l'image sélectionnée avant l'upload
+document.getElementById('img_c').addEventListener('change', function() {
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+    
+    if (this.files && this.files[0]) {
+        const file = this.files[0];
+        if (!file.type.startsWith('image/')) {
+            Toastify({
+                text: "Veuillez sélectionner un fichier image valide.",
+                duration: 3000,
+                backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)"
+            }).showToast();
+            this.value = "";
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '150px';
+            img.style.borderRadius = '8px';
+            preview.appendChild(img);
+        }
+        reader.readAsDataURL(file);
+    }
+});
+
+// Validation des dates lors de la création d'une élection
+document.getElementById('createElectionForm').addEventListener('submit', function(e) {
+    const start = new Date(document.getElementById('start').value);
+    const end = new Date(document.getElementById('end').value);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        e.preventDefault();
+        Toastify({
+            text: "Veuillez renseigner des dates valides.",
+            duration: 3000,
+            backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)"
+        }).showToast();
+        return;
+    }
+
+    if (start >= end) {
+        e.preventDefault();
+        Toastify({
+            text: "La date de fin doit être après la date de début.",
+            duration: 3000,
+            backgroundColor: "linear-gradient(to right, #ff416c, #ff4b2b)"
+        }).showToast();
+    }
+});
+
+// Ajout d'une accessibilité supplémentaire : gestion clavier pour label fichier
+document.querySelector('.file-upload-label').addEventListener('keydown', function(e) {
+    if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        document.getElementById('img_c').click();
+    }
+});
+</script>
+{% endblock %}
+

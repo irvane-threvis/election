@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Merci pour votre vote{% endblock %}
+
+{% block content %}
+<div class="vote-success">
+    <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+    </div>
+    <h1>Merci pour votre participation !</h1>
+    <p class="success-message">
+        Vous avez voté pour <strong>{{ candidate_name }}</strong>.
+    </p>
+    <p class="receipt-message">
+        <i class="fas fa-envelope"></i> Un email de confirmation vous a été envoyé.
+    </p>
+    <div class="success-actions">
+        <a href="{{ url_for('vote') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+        <a href="{{ url_for('results') }}" class="btn btn-primary">
+            <i class="fas fa-chart-bar"></i> Voir les résultats
+        </a>
+        <a href="{{ url_for('user_results') }}">Voir les résultats de mon élection</a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    Toastify({
+        text: "Vote enregistré avec succès !",
+        duration: 5000,
+        close: true,
+        gravity: "top",
+        position: "right",
+        backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+        className: "toast-success"
+    }).showToast();
+});
+</script>
+{% endblock %}
