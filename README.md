@@ -1,5 +1,5 @@
 # election
-un systeme de vote avec interface web permettre à des électeurs de voter en ligne de manière simple, sécurisée et anonyme, tout en assurant :
+un systeme de vote avec interface web (html, css, JavaScript, flask python) permettant à des électeurs de voter en ligne de manière simple, sécurisée et anonyme, tout en assurant :
 L’enregistrement et l’authentification des votants
 Le comptage automatique des votes
 L’affichage des résultats sous forme de graphiques
